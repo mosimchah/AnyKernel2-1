@@ -2,31 +2,23 @@
 AnyKernel2 - Flashable Zip Template for Kernel Releases with Ramdisk Modifications
 ----------------------------------------------------------------------------------
 ### by osm0sis @ xda-developers ###
+##### modified by GalaticStryder #####
 
 "AnyKernel is a template for an update.zip that can apply any kernel to any ROM, regardless of ramdisk." - Koush
 
 AnyKernel2 pushes the format even further by allowing kernel developers to modify the underlying ramdisk for kernel feature support easily using a number of included command methods along with properties and variables.
 
-A working script based on DirtyV Kernel for Galaxy Nexus (tuna) is included for reference.
-
 ## // Properties / Variables ##
 ```
-kernel.string=KernelName by YourName @ xda-developers
-do.devicecheck=1
-do.modules=1
-do.cleanup=1
+do.devicecheck=0
+do.cleanup=0
 do.cleanuponabort=0
-device.name1=maguro
-device.name2=toro
-device.name3=toroplus
 
-block=/dev/block/platform/omap/omap_hsmmc.0/by-name/boot;
+block=/dev/block/bootdevice/by-name/boot;
 is_slot_device=0;
 ```
 
 __do.devicecheck=1__ specified requires at least device.name1 to be present. This should match ro.product.device or ro.build.product for your device. There is support for up to 5 device.name# properties.
-
-__do.modules=1__ will push the contents of the module directory to /system/lib/modules/ and apply 644 permissions.
 
 __do.cleanup=0__ will keep the zip from removing it's working directory in /tmp/anykernel - this can be useful if trying to debug in adb shell whether the patches worked correctly.
 
@@ -72,6 +64,7 @@ https://forum.xda-developers.com/showthread.php?t=2073775 (Android Image Kitchen
 https://forum.xda-developers.com/showthread.php?t=2239421 (Odds and Ends thread)
 
 Optional supported binaries which may be placed in /tools to enable built-in expanded functionality are as follows:
+
 * `mkbootfs` - for broken recoveries, or, booted flash support for a script or app via bind mounting to a /tmp directory
 * `flash_erase`, `nanddump`, `nandwrite` - MTD block device support for devices where the `dd` command is not sufficient
 * `pxa-unpackbootimg`, `pxa-mkbootimg` - Samsung/Marvell PXA1088/PXA1908 boot.img format variant support
@@ -106,4 +99,4 @@ It is also extremely important to note that for the broadest AK2 compatibility i
 
 If running into trouble when flashing an AK2 zip, the suffix -debugging may be added to the zip's filename to enable creation of a debug .tgz of /tmp for later examination while booted or on desktop.
 
-Have fun!
+__Have fun!__

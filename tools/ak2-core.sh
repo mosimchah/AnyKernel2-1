@@ -1,5 +1,3 @@
-## AnyKernel methods (DO NOT CHANGE)
-# set up extracted files and directories
 ramdisk=/tmp/anykernel/ramdisk;
 bin=/tmp/anykernel/tools;
 split_img=/tmp/anykernel/split_img;
@@ -18,6 +16,7 @@ contains() { test "${1#*$2}" != "$1" && return 0 || return 1; }
 
 # dump boot and extract ramdisk
 dump_boot() {
+  ui_print "Dumping/splitting boot image...";
   if [ ! -e "$(echo $block | cut -d\  -f1)" ]; then
     ui_print " "; ui_print "Invalid partition. Aborting..."; exit 1;
   fi;
@@ -59,7 +58,7 @@ dump_boot() {
     $bin/unpackbootimg -i /tmp/anykernel/boot.img -o $split_img;
   fi;
   if [ $? != 0 -o "$dumpfail" ]; then
-    ui_print " "; ui_print "Dumping/splitting image failed. Aborting..."; exit 1;
+    ui_print " "; ui_print "Dumping/splitting boot image failed. Aborting..."; exit 1;
   fi;
   if [ -f "$bin/mkmtkhdr" ]; then
     dd bs=512 skip=1 conv=notrunc if=$split_img/boot.img-ramdisk.gz of=$split_img/temprd;
@@ -77,6 +76,7 @@ dump_boot() {
   mv -f $ramdisk /tmp/anykernel/rdtmp;
   mkdir -p $ramdisk;
   cd $ramdisk;
+  ui_print "Unpacking ramdisk...";
   gunzip -c $split_img/boot.img-ramdisk.gz | cpio -i;
   if [ $? != 0 -o -z "$(ls $ramdisk)" ]; then
     ui_print " "; ui_print "Unpacking ramdisk failed. Aborting..."; exit 1;
@@ -133,16 +133,19 @@ write_boot() {
   fi;
   for i in zImage zImage-dtb Image.gz Image Image-dtb Image.gz-dtb Image.bz2 Image.bz2-dtb Image.lzo Image.lzo-dtb Image.lzma Image.lzma-dtb Image.xz Image.xz-dtb Image.lz4 Image.lz4-dtb Image.fit; do
     if [ -f /tmp/anykernel/$i ]; then
+      ui_print "Kernel image: $i.";
       kernel=/tmp/anykernel/$i;
       break;
     fi;
   done;
   if [ ! "$kernel" ]; then
+    ui_print "Warning: Falling back to installed Kernel image!";
     kernel=`ls *-zImage`;
     kernel=$split_img/$kernel;
   fi;
   for i in dtb dt.img; do
     if [ -f /tmp/anykernel/$i ]; then
+      ui_print "Device tree image: $i.";
       dtb="--dt /tmp/anykernel/$i";
       break;
     fi;
@@ -151,6 +154,7 @@ write_boot() {
     dtb=`ls *-dtb`;
     dtb="--dt $split_img/$dtb";
   fi;
+  ui_print "Repacking ramdisk...";
   if [ -f "$bin/mkbootfs" ]; then
     $bin/mkbootfs $ramdisk | gzip > /tmp/anykernel/ramdisk-new.cpio.gz;
   else
@@ -169,6 +173,7 @@ write_boot() {
       *) $bin/mkmtkhdr --kernel $kernel; kernel=$kernel-mtk;;
     esac;
   fi;
+  ui_print "Repacking boot image...";
   if [ -f "$bin/mkimage" ]; then
     $bin/mkimage -A $arch -O $os -T $type -C $comp -a $addr -e $ep -n "$name" -d $kernel:$ramdisk boot-new.img;
   elif [ -f "$bin/rkcrc" ]; then
@@ -179,9 +184,9 @@ write_boot() {
     $bin/mkbootimg --kernel $kernel --ramdisk ramdisk-new.cpio.gz $second --cmdline "$cmdline" --board "$board" --base $base --pagesize $pagesize --kernel_offset $kerneloff --ramdisk_offset $ramdiskoff $secondoff --tags_offset "$tagsoff" --os_version "$osver" --os_patch_level "$oslvl" $hash $dtb --output boot-new.img;
   fi;
   if [ $? != 0 ]; then
-    ui_print " "; ui_print "Repacking image failed. Aborting..."; exit 1;
+    ui_print " "; ui_print "Repacking boot image failed. Aborting..."; exit 1;
   elif [ `wc -c < boot-new.img` -gt `wc -c < boot.img` ]; then
-    ui_print " "; ui_print "New image larger than boot partition. Aborting..."; exit 1;
+    ui_print " "; ui_print "New boot image larger than boot partition. Aborting..."; exit 1;
   fi;
   if [ -f "$bin/futility" -a -d "$bin/chromeos" ]; then
     $bin/futility vbutil_kernel --pack boot-new-signed.img --keyblock $bin/chromeos/kernel.keyblock --signprivate $bin/chromeos/kernel_data_key.vbprivk --version 1 --vmlinuz boot-new.img --bootloader $bin/chromeos/empty --config $bin/chromeos/empty --arch arm --flags 0x1;
@@ -236,6 +241,7 @@ write_boot() {
     cat $split_img/boot.img-master_boot.key boot-new.img > boot-new-signed.img;
     mv -f boot-new-signed.img boot-new.img;
   fi;
+  ui_print "Pushing boot image to partition...";
   if [ -f "$bin/flash_erase" -a -f "$bin/nandwrite" ]; then
     $bin/flash_erase $block 0 0;
     $bin/nandwrite -p $block /tmp/anykernel/boot-new.img;
@@ -401,6 +407,3 @@ if [ "$is_slot_device" == 1 ]; then
     ui_print " "; ui_print "Unable to determine active boot slot. Aborting..."; exit 1;
   fi;
 fi;
-
-## end methods
-
