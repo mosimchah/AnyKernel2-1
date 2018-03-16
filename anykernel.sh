@@ -2,8 +2,6 @@
 # osm0sis @ xda-developers
 # modified by GalaticStryder for Lambda Kernel
 
-# FAKE!
-# Those properties aren't used, refer to autogen.sh to the real ones.
 properties() {
 kernel.string=Lambda Kernel Fallback
 kernel.version=FALLBACK 12-31-1969
@@ -18,7 +16,6 @@ device.name4=
 device.name5=
 }
 
-# REAL!
 block=/dev/block/bootdevice/by-name/boot;
 is_slot_device=0;
 ramdisk_compression=auto;

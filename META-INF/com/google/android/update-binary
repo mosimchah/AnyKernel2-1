@@ -6,8 +6,8 @@ OUTFD=/proc/self/fd/$2;
 ZIPFILE="$3";
 DIR=`dirname "$ZIPFILE"`;
 
-ANYKERNEL=/tmp/anykernel/anykernel.sh;
 AUTOGEN=/tmp/anykernel/autogen.sh;
+ANYKERNEL=/tmp/anykernel/anykernel.sh;
 
 ui_print() {
   until [ ! "$1" ]; do
@@ -46,9 +46,6 @@ abort() {
   exit 1;
 }
 
-if [ -f $AUTOGEN ]; then
-  ANYKERNEL=$AUTOGEN;
-fi;
 show_progress 1.34 4;
 ui_print " ";
 cleanup;
@@ -61,6 +58,12 @@ fi;
 bb=/tmp/anykernel/tools/busybox;
 chmod 755 $bb;
 $bb chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
+
+if [ -f $AUTOGEN ]; then
+  ui_print "Fetching properties from autogen.sh...";
+  ui_print " ";
+  ANYKERNEL=$AUTOGEN;
+fi;
 
 if [ -f /tmp/anykernel/banner ]; then
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
