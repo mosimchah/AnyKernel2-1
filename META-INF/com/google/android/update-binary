@@ -65,6 +65,10 @@ if [ -f $AUTOGEN ]; then
   ANYKERNEL=$AUTOGEN;
 fi;
 
+ui_print "  /  _  _ _  /_  _/_  ";
+ui_print " /_,/_|/ / //_//_//_| ";
+ui_print " ";
+
 if [ -f /tmp/anykernel/banner ]; then
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
     ui_print "$line";
